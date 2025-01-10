@@ -1,0 +1,24 @@
+{
+  "name": "com.olivier-guillaume.procedural-geometry",
+  "version": "0.0.0",
+  "displayName": "Procedural Geometry",
+  "description": "A high level API for manipulating meshes in C#.",
+  "unity": "2022.3",
+  "dependencies": {
+ },
+ "keywords": [
+    "procedural",
+    "meshes",
+    "extrusion"
+  ],
+  "author": {
+    "name": "Olivier Guillaume"
+  },
+  "samples":[
+	{
+		"displayName": "Small planet",
+		"description": "A simple example demonstrating marching triangle, extrusion and UVs",
+		"path": "Samples~/Planet"
+	}
+  ]
+}
