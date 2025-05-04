@@ -12,7 +12,7 @@ namespace OG.ProceduralGeometry
 
         public Mesh GenerateMesh(HashSet<int> uvChannels = null)
         {
-            if(uvChannels == null) uvChannels = new HashSet<int>() { 0,1,2,3,4,5,6,7};
+            if (uvChannels == null) uvChannels = new HashSet<int>() { 0, 1, 2, 3, 4, 5, 6, 7 };
 
             List<Vector3> vertices = new();
             Dictionary<ValueTuple<Vertex, Face>, int> VerticesIndices = new();
@@ -20,7 +20,7 @@ namespace OG.ProceduralGeometry
 
             SetVertices(vertices, VerticesIndices, uvs);
 
-            Dictionary < int, List<int>> submeshesTris = new();
+            Dictionary<int, List<int>> submeshesTris = new();
             int subMeshCount = 0;
 
             foreach (Face face in Faces)
@@ -35,7 +35,7 @@ namespace OG.ProceduralGeometry
                 {
                     int i = GetVertexIndice(v, face);
                     tris.Add(i);
-                }     
+                }
             }
 
             Mesh mesh = new Mesh();
@@ -51,10 +51,10 @@ namespace OG.ProceduralGeometry
 
             mesh.subMeshCount = subMeshCount;
 
-            foreach(var kv in submeshesTris)
+            foreach (var kv in submeshesTris)
             {
                 mesh.SetTriangles(kv.Value, kv.Key);
-            }            
+            }
 
             mesh.RecalculateBounds();
             mesh.RecalculateNormals();
@@ -65,7 +65,7 @@ namespace OG.ProceduralGeometry
             void SetVertices(List<Vector3> verticesOutput, Dictionary<ValueTuple<Vertex, Face>, int> indicesOutput, Dictionary<int, List<Vector2>> uvs)
             {
                 foreach (int channel in uvChannels)
-                {                    
+                {
                     uvs[channel] = new();
                 }
 
@@ -87,7 +87,7 @@ namespace OG.ProceduralGeometry
 
                                 Vector2 faceuv;
 
-                                if(!face.uvs.TryGetValue(key, out faceuv)) continue;
+                                if (!face.uvs.TryGetValue(key, out faceuv)) continue;
 
                                 uv[channel] += faceuv;
                             }
@@ -160,7 +160,7 @@ namespace OG.ProceduralGeometry
 
                 return groups;
             }
-        
+
 
             int GetVertexIndice(Vertex vertex, Face face)
             {
@@ -186,7 +186,7 @@ namespace OG.ProceduralGeometry
         public void AddFace(Face face)
         {
             Faces.Add(face);
-            foreach(Vertex vertex in face.Vertices)
+            foreach (Vertex vertex in face.Vertices)
             {
                 Vertices.Add(vertex);
             }
@@ -201,7 +201,7 @@ namespace OG.ProceduralGeometry
         public void Remove(Vertex vertex)
         {
             List<Face> faces = new(vertex.faces);
-            foreach(Face face in faces) Remove(face);
+            foreach (Face face in faces) Remove(face);
             Vertices.Remove(vertex);
         }
 
@@ -212,6 +212,38 @@ namespace OG.ProceduralGeometry
             return face;
         }
 
+        public HashSet<Vertex> AddGeometry(ProceduralGeometry other)
+        {
+            Dictionary<Vertex, Vertex> ClonedVertices = new(other.Vertices.Count);
+
+            foreach (Vertex v in other.Vertices) ClonedVertices[v] = new(v.position);
+
+            foreach(Face face in other.Faces)
+            {
+                Vertex[] vertices = new Vertex[face.VerticesCount];
+                for (int i = 0; i < face.VerticesCount; i++)
+                {
+                    vertices[i] = ClonedVertices[face.vertices[i]];                   
+                }
+                Face clonedFace = AddFace(vertices);
+                for (int i = 0; i < face.VerticesCount; i++)
+                {
+                    for(int channel = 0; channel < 8; channel++)
+                    {
+                        clonedFace.SetUV(vertices[i], face.GetUV(face.vertices[i], channel), channel);
+                    }
+                }
+                foreach(Edge e in face.Edges)
+                {
+                    Vertex v0 = ClonedVertices[e.Vertex0];
+                    Vertex v1 = ClonedVertices[e.Vertex1];
+                    v0.GetEdgeWith(v1).smooth = e.smooth;
+                }
+            }           
+
+
+            return new(ClonedVertices.Values);
+        }
 
         public void Triangulate()
         {
@@ -233,22 +265,22 @@ namespace OG.ProceduralGeometry
 
                 for (int i = 0; i < tris.Count - 2; i += 3)
                 {
-                    Face triangle = AddFace(tris[i], tris[i+1], tris[i+2]);
+                    Face triangle = AddFace(tris[i], tris[i + 1], tris[i + 2]);
                     NewFaces.Add(triangle);
 
                     triangle.SetUV(tris[i], face.GetUV(tris[i]));
-                    triangle.SetUV(tris[i+1], face.GetUV(tris[i+1]));
-                    triangle.SetUV(tris[i+2], face.GetUV(tris[i+2]));
+                    triangle.SetUV(tris[i + 1], face.GetUV(tris[i + 1]));
+                    triangle.SetUV(tris[i + 2], face.GetUV(tris[i + 2]));
 
                     triangle.CopyAttributesFrom(face);
                 }
 
-                foreach(Face triangle in NewFaces)
+                foreach (Face triangle in NewFaces)
                 {
-                    foreach(Edge edge in triangle.Edges)
+                    foreach (Edge edge in triangle.Edges)
                     {
                         bool insideEdge = true;
-                        foreach(Face adjacentFace in edge.Faces)
+                        foreach (Face adjacentFace in edge.Faces)
                         {
                             if (!NewFaces.Contains(adjacentFace))
                             {
@@ -256,7 +288,7 @@ namespace OG.ProceduralGeometry
                                 break;
                             }
                         }
-                        if(insideEdge) edge.smooth = true;
+                        if (insideEdge) edge.smooth = true;
                     }
                 }
 
@@ -269,10 +301,24 @@ namespace OG.ProceduralGeometry
 
         }
 
+        public ProceduralGeometry(ProceduralGeometry geom)
+        {
+            AddGeometry(geom);
+        }
+
+
         public ProceduralGeometry(Mesh Mesh)
         {
             Dictionary<Vector3, Vertex> verticesPos = new Dictionary<Vector3, Vertex>();
             Vertex[] vertices = new Vertex[Mesh.vertexCount];
+            List<Vector2>[] uvs = new List<Vector2>[8];
+            for (int channel = 0; channel <= 7; channel++)
+            {
+                List<Vector2> uvsi = new();
+                Mesh.GetUVs(channel, uvsi);
+                uvs[channel] = uvsi;
+            }
+
             for (int i = 0; i < Mesh.vertices.Length; i++)
             {
                 Vector3 pos = Mesh.vertices[i];
@@ -284,7 +330,7 @@ namespace OG.ProceduralGeometry
                 vertices[i] = verticesPos[pos];
             }
 
-            for(int submesh = 0; submesh < Mesh.subMeshCount; submesh++)
+            for (int submesh = 0; submesh < Mesh.subMeshCount; submesh++)
             {
                 var tris = Mesh.GetTriangles(submesh);
                 Dictionary<Face, int> facesIndices = new Dictionary<Face, int>();
@@ -327,6 +373,15 @@ namespace OG.ProceduralGeometry
                         }
 
                         edge.smooth = smooth;
+                    }
+
+                    for (int channel = 0; channel <= 7; channel++)
+                    {
+                        var uvsc = uvs[channel];
+                        if (uvsc == null || uvsc.Count == 0) continue;
+                        face.SetUV(A, uvs[channel][tris[i]]);
+                        face.SetUV(B, uvs[channel][tris[i + 1]]);
+                        face.SetUV(C, uvs[channel][tris[i + 2]]);
                     }
                 }
             }

@@ -48,6 +48,7 @@ namespace OG.ProceduralGeometry
             }
         }
 
+
         /// <returns>The edge connecting this vertex with the other. Null if it doesn't exist.</returns>
         internal Edge GetEdgeWith(Vertex other)
         {
