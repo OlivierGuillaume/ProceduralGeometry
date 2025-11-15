@@ -29,5 +29,20 @@ namespace OG.ProceduralGeometry
             vertices[0].edges.Remove(this);
             vertices[1].edges.Remove(this);
         }
+
+        internal Vertex GetSharedVertexWith(Edge other)
+        {
+            for(int offset = 0; offset <= 1; offset++)
+            {
+                for(int i = 0; i < 2; i++)
+                {
+                    if (vertices[i] == other.vertices[(i + offset) % 2])
+                    {
+                        return vertices[i];
+                    }
+                }
+            }
+            return null;
+        }
     }
 }

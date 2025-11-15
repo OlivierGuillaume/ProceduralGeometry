@@ -48,6 +48,14 @@ namespace OG.ProceduralGeometry
             }
         }
 
+        public void SetColor(Color color)
+        {
+            foreach (var face in faces)
+            {
+                face.SetColor(this, color);
+            }
+        }
+
 
         /// <returns>The edge connecting this vertex with the other. Null if it doesn't exist.</returns>
         internal Edge GetEdgeWith(Vertex other)

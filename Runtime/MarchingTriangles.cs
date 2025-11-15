@@ -85,6 +85,7 @@ namespace OG.ProceduralGeometry
                 //Creating or getting the "edge" vertices
                 Vertex[] edgeVertices = new Vertex[2];
                 Vector2[] uvs = new Vector2[2];
+                Color[] colors = new Color[2];
                 for (int i = 0; i < 2; i++)
                 {
                     int c0 = edges[i];
@@ -108,6 +109,7 @@ namespace OG.ProceduralGeometry
                         t = 1 + h1 / (h0 - h1);
                     }
                     uvs[i] = Vector2.Lerp(face.GetUV(corner0), face.GetUV(corner1), t);
+                    colors[i] = Color.Lerp(face.GetColor(corner0), face.GetColor(corner1), t);
 
                     if (!TriangeSideVertices.ContainsKey(index0))
                     {                       
@@ -127,10 +129,15 @@ namespace OG.ProceduralGeometry
                 //Triangle face
                 Vertex Corner = face.vertices[triangleCornerIndex];
                 Face triangleFace = AddFace(Corner, edgeVertices[0], edgeVertices[1]);
+
                 triangleFace.SetUV(edgeVertices[0], uvs[0]);
                 triangleFace.SetUV(edgeVertices[1], uvs[1]);
                 triangleFace.SetUV(Corner, face.GetUV(Corner));
-                
+
+                triangleFace.SetColor(edgeVertices[0], colors[0]);
+                triangleFace.SetColor(edgeVertices[1], colors[1]);
+                triangleFace.SetColor(Corner, face.GetColor(Corner));
+
                 CopyAttributes(from: face, to: triangleFace);
                 (positive[triangleCornerIndex] ? PositiveFaces : NegativeFaces).Add(triangleFace);
 
@@ -152,10 +159,18 @@ namespace OG.ProceduralGeometry
                 Corner = face.vertices[i0];
                 Vertex Corner2 = face.vertices[i1];
                 Face quadFace = AddFace(Corner, Corner2, edgeVertices[1], edgeVertices[0]);
+
                 quadFace.SetUV(Corner, face.GetUV(Corner)); 
                 quadFace.SetUV(Corner2, face.GetUV(Corner2)); 
                 quadFace.SetUV(edgeVertices[0], uvs[0]);
                 quadFace.SetUV(edgeVertices[1], uvs[1]);
+
+                quadFace.SetColor(Corner, face.GetColor(Corner));
+                quadFace.SetColor(Corner2, face.GetColor(Corner2));
+                quadFace.SetColor(edgeVertices[0], colors[0]);
+                quadFace.SetColor(edgeVertices[1], colors[1]);
+
+
                 CopyAttributes(from: face, to: quadFace);
                 (positive[i0] ? PositiveFaces : NegativeFaces).Add(quadFace);
 

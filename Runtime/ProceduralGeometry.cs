@@ -17,6 +17,7 @@ namespace OG.ProceduralGeometry
             List<Vector3> vertices = new();
             Dictionary<ValueTuple<Vertex, Face>, int> VerticesIndices = new();
             Dictionary<int, List<Vector2>> uvs = new();
+            List<Color> colors = new();
 
             SetVertices(vertices, VerticesIndices, uvs);
 
@@ -49,6 +50,8 @@ namespace OG.ProceduralGeometry
                 mesh.SetUVs(kv.Key, kv.Value);
             }
 
+            mesh.SetColors(colors);
+
             mesh.subMeshCount = subMeshCount;
 
             foreach (var kv in submeshesTris)
@@ -76,6 +79,7 @@ namespace OG.ProceduralGeometry
                         int vertexIndex = vertices.Count;
                         vertices.Add(v.position);
                         Vector2[] uv = new Vector2[8];
+                        Color color = new(0f, 0f, 0f, 0f);
 
                         foreach (Face face in smoothSurface)
                         {
@@ -91,6 +95,9 @@ namespace OG.ProceduralGeometry
 
                                 uv[channel] += faceuv;
                             }
+
+                            if (face.colors.TryGetValue(v, out Color col)) color += col;
+
                         }
 
                         foreach (int channel in uvChannels)
@@ -98,6 +105,9 @@ namespace OG.ProceduralGeometry
                             uv[channel] /= smoothSurface.Count;
                             uvs[channel].Add(uv[channel]);
                         }
+
+                        colors.Add(color / smoothSurface.Count);
+
                     }
                 }
             }
@@ -177,6 +187,8 @@ namespace OG.ProceduralGeometry
                     {
                         uvs[channel].Add(face.GetUV(vertex, channel));
                     }
+                    colors.Add(face.GetColor(vertex));
+
                 }
 
                 return index;
@@ -231,6 +243,7 @@ namespace OG.ProceduralGeometry
                     for(int channel = 0; channel < 8; channel++)
                     {
                         clonedFace.SetUV(vertices[i], face.GetUV(face.vertices[i], channel), channel);
+                        clonedFace.SetColor(vertices[i], face.GetColor(face.vertices[i]));
                     }
                 }
                 foreach(Edge e in face.Edges)
@@ -271,6 +284,10 @@ namespace OG.ProceduralGeometry
                     triangle.SetUV(tris[i], face.GetUV(tris[i]));
                     triangle.SetUV(tris[i + 1], face.GetUV(tris[i + 1]));
                     triangle.SetUV(tris[i + 2], face.GetUV(tris[i + 2]));
+
+                    triangle.SetColor(tris[i], face.GetColor(tris[i]));
+                    triangle.SetColor(tris[i + 1], face.GetColor(tris[i + 1]));
+                    triangle.SetColor(tris[i + 2], face.GetColor(tris[i + 2]));
 
                     triangle.CopyAttributesFrom(face);
                 }
@@ -318,6 +335,8 @@ namespace OG.ProceduralGeometry
                 Mesh.GetUVs(channel, uvsi);
                 uvs[channel] = uvsi;
             }
+            List<Color> colors = new List<Color>();
+            Mesh.GetColors(colors);
 
             for (int i = 0; i < Mesh.vertices.Length; i++)
             {
@@ -383,6 +402,10 @@ namespace OG.ProceduralGeometry
                         face.SetUV(B, uvs[channel][tris[i + 1]]);
                         face.SetUV(C, uvs[channel][tris[i + 2]]);
                     }
+
+                    face.SetColor(A, colors[tris[i]]);
+                    face.SetColor(B, colors[tris[i + 1]]);
+                    face.SetColor(C, colors[tris[i + 2]]);
                 }
             }
         }

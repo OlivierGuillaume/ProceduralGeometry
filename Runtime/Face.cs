@@ -11,6 +11,7 @@ namespace OG.ProceduralGeometry
         internal readonly List<Edge> edges = new();
 
         internal readonly Dictionary<ValueTuple<Vertex, int>, Vector2> uvs = new();
+        internal readonly Dictionary<Vertex, Color> colors = new();
     
         public readonly Dictionary<int, float> Attributes = new();
 
@@ -22,9 +23,20 @@ namespace OG.ProceduralGeometry
                 uvs[new(vertex, channel)] = uv;
         }
 
+        public void SetColor(Color color)
+        {
+            foreach (var vertex in vertices)
+                colors[vertex] = color;
+        }
+
         public void SetUV(Vertex vertex, Vector2 uv, int channel = 0)
         {
             uvs[new(vertex, channel)] = uv;
+        }
+
+        public void SetColor(Vertex vertex, Color color)
+        {
+                colors[vertex] = color;
         }
 
         public Vector2 GetUV(Vertex vertex, int channel = 0)
@@ -36,6 +48,11 @@ namespace OG.ProceduralGeometry
             if(!uvs.TryGetValue(key, out uv))  return Vector2.zero;
 
             return uv;
+        }
+
+        public Color GetColor(Vertex vertex)
+        {
+            return colors.TryGetValue(vertex, out Color color) ? color : default;
         }
 
         public enum TriangulationMode { Fan, Radial }
@@ -182,18 +199,23 @@ namespace OG.ProceduralGeometry
 
             Vector3 centroidPos = Vector3.zero;
             Vector2 centroidUV = Vector3.zero;
+            Color centroidColor = new(0, 0, 0, 0);
 
             foreach (Vertex v in vertices)
             {
                 centroidPos += v.position;
                 centroidUV += GetUV(v);
+                centroidColor += GetColor(v);
             }
 
             centroidPos /= vertices.Count;
             centroidUV /= vertices.Count;
+            centroidColor /= vertices.Count;
+
 
             Vertex centroid = new Vertex(centroidPos);
             SetUV(centroid, centroidUV);
+            SetColor(centroid, centroidColor);
 
             for (int i = 0; i < vertices.Count ; i++)
             {
