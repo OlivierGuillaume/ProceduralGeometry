@@ -26,8 +26,7 @@ namespace OG.ProceduralGeometry
 
         ~Edge()
         {
-            vertices[0].edges.Remove(this);
-            vertices[1].edges.Remove(this);
+            ClearReferences();
         }
 
         internal Vertex GetSharedVertexWith(Edge other)
@@ -43,6 +42,11 @@ namespace OG.ProceduralGeometry
                 }
             }
             return null;
+        }
+        internal void ClearReferences()
+        {
+            vertices[0]?.edges.Remove(this);
+            vertices[1]?.edges.Remove(this);
         }
     }
 }

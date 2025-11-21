@@ -234,7 +234,12 @@ namespace OG.ProceduralGeometry
         internal void ClearReferences()
         {
             foreach (Vertex v in vertices) v.faces.Remove(this);
-            foreach (Edge edge in edges) edge.faces.Remove(this);
+
+            foreach (Edge edge in edges)
+            {
+                edge.faces.Remove(this);
+                edge.ClearReferences();
+            }
         }
 
         /// <summary>
