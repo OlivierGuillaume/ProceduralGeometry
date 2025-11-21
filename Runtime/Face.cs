@@ -238,7 +238,7 @@ namespace OG.ProceduralGeometry
             foreach (Edge edge in edges)
             {
                 edge.faces.Remove(this);
-                edge.ClearReferences();
+                if(edge.faces.Count == 0) edge.ClearReferences();
             }
         }
 
